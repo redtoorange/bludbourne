@@ -1,16 +1,22 @@
 package com.bludbourne.game;
 
+import java.awt.event.MouseWheelEvent;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Array;
+import com.bludbourne.game.custom.GameObject;
 
 //A screen represents a game state
 public class MainGameScreen implements Screen{
@@ -34,6 +40,8 @@ public class MainGameScreen implements Screen{
 	private OrthogonalTiledMapRenderer _mapRenderer = null;	//	place that handles the map and draw it
 	private OrthographicCamera _camera = null;	// camera
 	private static MapManager _mapMgr;		// manages the map
+	
+	public Array<GameObject> gameObjects = new Array<GameObject>();
 	
 	public MainGameScreen() {
 		_mapMgr = new MapManager();
@@ -61,37 +69,61 @@ public class MainGameScreen implements Screen{
 		_currentPlayerSprite = _player.getFrameSprite();
 		
 		_controller = new PlayerController(_player);
-		Gdx.input.setInputProcessor(_controller);		
+		Gdx.input.setInputProcessor(_controller);
+		
+		//Player player = new Player();
+		//_controller.setPlayer(player);
+		//gameObjects.add(player);
 	}
 
+	private void updateGameObjects(float deltaTime){
+		for (GameObject gameObject : gameObjects) {
+			gameObject.update(deltaTime);
+		}
+	}
+	
+	private void drawGameObjects(Batch batch){
+		for (GameObject gameObject : gameObjects) {
+			gameObject.draw(batch);
+		}
+	}
+	
+	
 	@Override
 	public void render(float delta) {	
 		// called each frame of rendering, equivalent to Unit's Update();
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
+		//
+		updateGameObjects(delta);
+		
 		//preferable to lock and center the _camera to the player's position
-		_camera.position.set(_currentPlayerSprite.getX(), _currentPlayerSprite.getY(), 0);
+		_camera.position.set(_currentPlayerSprite.getX(), _currentPlayerSprite.getY(), 0f);
 		_camera.update();	//update the camera
 		
 		_player.update(delta);	//update the player
-		
 		_currentPlayerFrame = _player.getFrame();
 		
 		updatePortalLayerActivation(_player._boundingBox);
-		if(!isCollisionWithMapLayer(_player._boundingBox)){
+		
+		if( !isCollisionWithMapLayer(_player._boundingBox )){
 			_player.setNextPositionToCurrent();
 		}
-		
 		_controller.update(delta);	// update the controller
 		
 		_mapRenderer.setView(_camera);
-		_mapRenderer.update(delta);	// update the map renderer
+		_mapRenderer.render();
 		
 		//Begin bathcing and draw
 		_mapRenderer.getBatch().begin();
+		
+		//
+		drawGameObjects(_mapRenderer.getBatch());
 		_mapRenderer.getBatch().draw(_currentPlayerFrame, _currentPlayerSprite.getX(), _currentPlayerSprite.getY(), 1, 1);	// draw the player at his X and Y
-		_mapRenderer.getBatch().end();		
+		_mapRenderer.getBatch().end();
+		
+		
 	}
 
 	@Override

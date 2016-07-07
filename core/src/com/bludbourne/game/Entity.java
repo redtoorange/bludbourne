@@ -40,7 +40,7 @@ public class Entity {
 	
 	public final int FRAME_WIDTH = 16;
 	public final int FRAME_HEIGHT = 16;
-	public static Rectangle _boundingBox;
+	public Rectangle _boundingBox;
 	
 	public enum State{
 		IDLE, WALKING
@@ -94,10 +94,10 @@ public class Entity {
 		}
 		
 		if(heightReductionAmount > 0 && heightReductionAmount < 1){
-			height = FRAME_WIDTH * heightReductionAmount;
+			height = FRAME_HEIGHT* heightReductionAmount;
 		}
 		else{
-			height = FRAME_WIDTH;
+			height = FRAME_HEIGHT;
 		}
 		
 		if(width == 0 || height == 0){
@@ -205,26 +205,29 @@ public class Entity {
 		//Look into the appropriate variable when changing position
 		switch(_currentDirection){
 				case DOWN:
-					_currentFrame = _walkDownAnimation.getKeyFrame(deltaTime);
+					_currentFrame = _walkDownAnimation.getKeyFrame(_frameTime);
 					break;
 				case LEFT:
-					_currentFrame = _walkLeftAnimation.getKeyFrame(deltaTime);
+					_currentFrame = _walkLeftAnimation.getKeyFrame(_frameTime);
 					break;
 				case UP:
-					_currentFrame = _walkUpAnimation.getKeyFrame(deltaTime);
+					_currentFrame = _walkUpAnimation.getKeyFrame(_frameTime);
 					break;
 				case RIGHT:
-					_currentFrame = _walkRightAnimation.getKeyFrame(deltaTime);
+					_currentFrame = _walkRightAnimation.getKeyFrame(_frameTime);
+					break;
+				default:
 					break;
 		}
 	}
 	
-	public void setNextPosition(){
+	public void setNextPositionToCurrent(){
 		setCurrentPosition(_nextPlayerPosition);
 	}	
 	
 	//Method of collision detection.  Look ahead one frame to see what is there
 	public void calculateNextPosition(Direction currentDirection, float deltaTime){
+		_nextPlayerPosition = new Vector2();
 		float testX = _currentPlayerPosition.x;
 		float testY  = _currentPlayerPosition.y;
 		
@@ -251,10 +254,6 @@ public class Entity {
 		
 		//velocity
 		_velocity.scl(1 / deltaTime);
-	}
-
-	public void setNextPositionToCurrent() {
-		_nextPlayerPosition = _currentPlayerPosition;		
 	}
 }
 // EOF
